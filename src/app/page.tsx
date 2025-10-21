@@ -77,7 +77,7 @@ export default function Home() {
                     Comment ça marche ?
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Créez votre première vidéo en 3 étapes simples
+                    Créez votre première vidéo en 3 étapes
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">

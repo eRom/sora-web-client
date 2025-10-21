@@ -3,25 +3,54 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "for port in {3000..3005}; do lsof -ti:$port | xargs kill -9 2>/dev/null; done && next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "format:staged": "prettier --write",
+    "icons": "node scripts/generate-icons.js",
+    "icons:watch": "nodemon --watch logo.png --exec \"npm run icons\"",
+    "og:generate": "node scripts/generate-og-image.js",
+    "lighthouse": "node scripts/lighthouse-test.js",
+    "lighthouse:desktop": "node scripts/lighthouse-test.js http://localhost:3000 desktop",
+    "lighthouse:mobile": "node scripts/lighthouse-test.js http://localhost:3000 mobile",
+    "lighthouse:both": "node scripts/lighthouse-test.js http://localhost:3000 both",
+    "optimize:images": "node scripts/optimize-images.js",
+    "screenshots": "node scripts/generate-screenshots.js",
+    "pwa:setup": "npm run screenshots && npm run optimize:images"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
+    "@types/qrcode": "^1.5.5",
+    "canvas": "^3.2.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.546.0",
+    "next": "15.5.6",
+    "next-themes": "^0.4.6",
+    "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.6"
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.19.22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.6",
-    "@eslint/eslintrc": "^3"
+    "imagemin": "^9.0.1",
+    "imagemin-avif": "^0.1.6",
+    "imagemin-webp": "^8.0.0",
+    "lighthouse": "^12.8.2",
+    "prettier": "^3.6.2",
+    "puppeteer": "^24.25.0",
+    "sharp": "^0.34.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

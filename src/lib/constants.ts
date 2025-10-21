@@ -1,21 +1,29 @@
-import { VideoModel, VideoDimension } from "@/types/video";
+import { VideoDimension, VideoModel } from "@/types/video";
 
 // Modèles de vidéo disponibles avec leurs descriptions
 export const VIDEO_MODELS = {
   "sora-2": {
     label: "Sora 2",
-    description: "Modèle standard pour la plupart des cas d'usage",
+    description: "Modèle standard",
   },
   "sora-2-pro": {
     label: "Sora 2 Pro",
-    description: "Modèle avancé avec plus de capacités",
+    description: "Modèle avancé",
   },
 } as const;
 
-// Dimensions disponibles par modèle
-export const MODEL_DIMENSIONS: Record<VideoModel, VideoDimension[]> = {
-  "sora-2": ["1280x720", "720x1280"],
-  "sora-2-pro": ["1280x720", "720x1280", "1024x1792", "1792x1024"],
+// Dimensions disponibles par modèle avec orientation
+export const MODEL_DIMENSIONS: Record<VideoModel, Array<{value: VideoDimension, label: string, orientation: 'paysage' | 'portrait'}>> = {
+  "sora-2": [
+    { value: "1280x720", label: "1280x720", orientation: "paysage" },
+    { value: "720x1280", label: "720x1280", orientation: "portrait" },
+  ],
+  "sora-2-pro": [
+    { value: "1280x720", label: "1280x720", orientation: "paysage" },
+    { value: "720x1280", label: "720x1280", orientation: "portrait" },
+    { value: "1024x1792", label: "1024x1792", orientation: "portrait" },
+    { value: "1792x1024", label: "1792x1024", orientation: "paysage" },
+  ],
 };
 
 // Durées disponibles

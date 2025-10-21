@@ -2,27 +2,55 @@ import { z } from 'zod'
 
 // Modèles Sora disponibles
 export const SORA_MODELS = [
-  { value: 'sora-2', label: 'Sora 2', description: 'Modèle le plus récent et performant' },
-  { value: 'sora-1.5', label: 'Sora 1.5', description: 'Version précédente stable' },
+  { value: 'sora-2', label: 'Sora 2', description: 'Modèle standard pour la plupart des cas d\'usage' },
+  { value: 'sora-2-pro', label: 'Sora 2 Pro', description: 'Modèle avancé avec plus de capacités' },
 ] as const
 
 // Durées disponibles
 export const DURATIONS = [
-  { value: 5, label: '5 secondes', description: 'Court et rapide' },
-  { value: 10, label: '10 secondes', description: 'Durée standard' },
-  { value: 20, label: '20 secondes', description: 'Plus de détails' },
-  { value: 30, label: '30 secondes', description: 'Maximum autorisé' },
+  { value: 4, label: '4 secondes', description: 'Court et rapide' },
+  { value: 8, label: '8 secondes', description: 'Durée standard' },
+  { value: 12, label: '12 secondes', description: 'Plus de détails' },
 ] as const
 
 // Durée par défaut
-export const DEFAULT_DURATION = 10
+export const DEFAULT_DURATION = 4
 
-// Dimensions disponibles
-export const DIMENSIONS = [
-  { value: '1024x576', label: '1024x576 (16:9)', description: 'Format paysage standard' },
-  { value: '576x1024', label: '576x1024 (9:16)', description: 'Format portrait mobile' },
-  { value: '1024x1024', label: '1024x1024 (1:1)', description: 'Format carré' },
-] as const
+// Dimensions disponibles par modèle
+export const MODEL_DIMENSIONS = {
+  'sora-2': [
+    { value: '1280x720', label: '1280x720 (16:9)', description: 'Format paysage HD' },
+    { value: '720x1280', label: '720x1280 (9:16)', description: 'Format portrait HD' },
+  ],
+  'sora-2-pro': [
+    { value: '1280x720', label: '1280x720 (16:9)', description: 'Format paysage HD' },
+    { value: '720x1280', label: '720x1280 (9:16)', description: 'Format portrait HD' },
+    { value: '1024x1792', label: '1024x1792 (9:16)', description: 'Format portrait haute résolution' },
+    { value: '1792x1024', label: '1792x1024 (16:9)', description: 'Format paysage haute résolution' },
+  ],
+} as const
+
+// Dimensions par défaut (pour compatibilité)
+export const DIMENSIONS = MODEL_DIMENSIONS['sora-2']
+
+// Matrice de prix par modèle et dimension (en USD par seconde)
+export const PRICING_MATRIX = {
+  'sora-2': {
+    '1280x720': 0.10,
+    '720x1280': 0.10,
+  },
+  'sora-2-pro': {
+    '1280x720': 0.30,
+    '720x1280': 0.30,
+    '1024x1792': 0.50,
+    '1792x1024': 0.50,
+  },
+} as const
+
+// Fonction pour obtenir le tarif par seconde
+export const getPricePerSecond = (model: string, size: string): number => {
+  return PRICING_MATRIX[model as keyof typeof PRICING_MATRIX]?.[size as keyof typeof PRICING_MATRIX['sora-2']] || 0
+}
 
 // Schéma de validation pour la génération de vidéo
 export const videoGenerationSchema = z.object({

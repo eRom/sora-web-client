@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { DEFAULT_DURATION, DIMENSIONS, DURATIONS, SORA_MODELS } from '@/lib/validations'
+import { MODEL_DIMENSIONS as CONSTANTS_DIMENSIONS, COST_PER_SECOND_MATRIX, VIDEO_DURATIONS, VIDEO_MODELS } from '@/lib/constants'
+import { DEFAULT_DURATION } from '@/lib/validations'
 import { ActionResult, Video } from '@/types/video'
 import { Clock, FileImage, Image as ImageIcon, Loader2, Monitor, Settings, Sparkles, Upload, Wand2, X } from 'lucide-react'
 import Image from 'next/image'
@@ -16,7 +17,7 @@ import { useActionState, useEffect, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { toast } from 'sonner'
 
-function SubmitButton() {
+function SubmitButton({ estimatedCost }: { estimatedCost: number }) {
   const { pending } = useFormStatus()
 
   return (
@@ -34,7 +35,7 @@ function SubmitButton() {
       ) : (
         <>
           <Wand2 className="w-5 h-5 mr-3" />
-          Générer la vidéo
+          Générer la vidéo ({estimatedCost.toFixed(2)} $US)
         </>
       )}
     </Button>
@@ -44,9 +45,10 @@ function SubmitButton() {
 export function VideoGenerator() {
   const [selectedModel, setSelectedModel] = useState<string>('sora-2')
   const [selectedDuration, setSelectedDuration] = useState<number>(DEFAULT_DURATION)
-  const [selectedSize, setSelectedSize] = useState<string>('1024x576')
+  const [selectedSize, setSelectedSize] = useState<string>('1280x720')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const [estimatedCost, setEstimatedCost] = useState<number>(0)
 
   const [state, formAction] = useActionState(
     async (prevState: ActionResult<Video> | null, formData: FormData) => {
@@ -64,9 +66,18 @@ export function VideoGenerator() {
 
   // Mettre à jour les dimensions disponibles quand le modèle change
   useEffect(() => {
-    // Pour l'instant, on garde la taille sélectionnée
-    // TODO: Implémenter la logique de changement de taille selon le modèle
-  }, [selectedModel])
+    const availableDimensions = CONSTANTS_DIMENSIONS[selectedModel as keyof typeof CONSTANTS_DIMENSIONS]
+    if (availableDimensions && !availableDimensions.some(dim => dim.value === selectedSize)) {
+      // Si la taille actuelle n'est pas disponible pour le nouveau modèle, utiliser la première disponible
+      setSelectedSize(availableDimensions[0].value)
+    }
+  }, [selectedModel, selectedSize])
+
+  // Calculer le coût estimé
+  useEffect(() => {
+    const pricePerSecond = COST_PER_SECOND_MATRIX[selectedModel as keyof typeof COST_PER_SECOND_MATRIX]?.[selectedSize as keyof typeof COST_PER_SECOND_MATRIX['sora-2']] || 0
+    setEstimatedCost(pricePerSecond * selectedDuration)
+  }, [selectedModel, selectedSize, selectedDuration])
 
   // Gérer les notifications
   useEffect(() => {
@@ -113,7 +124,7 @@ export function VideoGenerator() {
     }
   }
 
-  const currentModel = SORA_MODELS.find(model => model.value === selectedModel)
+  const currentModel = VIDEO_MODELS[selectedModel as keyof typeof VIDEO_MODELS]
 
   return (
     <Card className="w-full border-0 shadow-2xl bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm">
@@ -154,7 +165,7 @@ export function VideoGenerator() {
                 <SelectValue placeholder="Choisir un modèle" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(SORA_MODELS).map(([key, model]) => (
+                {Object.entries(VIDEO_MODELS).map(([key, model]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
@@ -163,7 +174,7 @@ export function VideoGenerator() {
                       <div>
                         <span className="font-semibold">{model.label}</span>
                         <span className="text-xs text-muted-foreground ml-2">
-                          {key === 'sora-2' ? 'Standard' : 'Professionnel'}
+                          {model.description}
                         </span>
                       </div>
                     </div>
@@ -175,12 +186,12 @@ export function VideoGenerator() {
 
           <Separator className="my-8" />
 
-          {/* Dimensions et durée */}
+          {/* Résolutions et durée */}
           <div className="grid sm:grid-cols-2 gap-6">
             <div className="space-y-4">
               <Label htmlFor="size" className="text-lg font-semibold flex items-center gap-2">
                 <Monitor className="w-5 h-5 text-primary" />
-                Dimensions
+                Résolutions
               </Label>
               <Select
                 name="size"
@@ -189,14 +200,19 @@ export function VideoGenerator() {
                 required
               >
                 <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder="Choisir les dimensions" />
+                  <SelectValue placeholder="Choisir la résolution" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DIMENSIONS.map((dimension) => (
+                  {CONSTANTS_DIMENSIONS[selectedModel as keyof typeof CONSTANTS_DIMENSIONS]?.map((dimension) => (
                     <SelectItem key={dimension.value} value={dimension.value}>
                       <div className="flex items-center gap-3">
                         <div className="w-3 h-3 bg-gradient-to-br from-primary to-primary/80 rounded-full" />
-                        <span className="font-medium">{dimension.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{dimension.label}</span>
+                          <span className="text-xs text-muted-foreground">
+                            - {dimension.orientation}
+                          </span>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -219,13 +235,13 @@ export function VideoGenerator() {
                   <SelectValue placeholder="Choisir la durée" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DURATIONS.map((duration) => (
-                    <SelectItem key={duration.value} value={duration.value.toString()}>
+                  {VIDEO_DURATIONS.map((duration) => (
+                    <SelectItem key={duration} value={duration.toString()}>
                       <div className="flex items-center gap-3">
-                        <span className="font-medium">{duration.label}</span>
-                        {duration.value === 10 && (
+                        <span className="font-medium">{duration} secondes</span>
+                        {duration === DEFAULT_DURATION && (
                           <Badge variant="secondary" className="text-xs">
-                            Recommandé
+                            Défaut
                           </Badge>
                         )}
                       </div>
@@ -331,7 +347,7 @@ export function VideoGenerator() {
 
           {/* Bouton de génération */}
           <div className="pt-4">
-            <SubmitButton />
+            <SubmitButton estimatedCost={estimatedCost} />
           </div>
         </form>
       </CardContent>

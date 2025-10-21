@@ -55,10 +55,11 @@ export interface Video {
 }
 
 // Interface pour les réponses des actions
-export interface ActionResult<T = any> {
+export interface ActionResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
+  message?: string;
 }
 
 // Interface pour la liste des vidéos

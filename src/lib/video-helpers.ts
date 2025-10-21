@@ -5,7 +5,7 @@ import { VideoDimension, VideoDuration, VideoModel } from "@/types/video";
  * Valide le format et la taille d'un fichier image
  */
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
-  if (!ACCEPTED_IMAGE_FORMATS.includes(file.type as any)) {
+  if (!ACCEPTED_IMAGE_FORMATS.includes(file.type as typeof ACCEPTED_IMAGE_FORMATS[number])) {
     return {
       valid: false,
       error: "Format d'image non supporté. Utilisez JPG, PNG ou WebP.",

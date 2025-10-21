@@ -1,9 +1,9 @@
 "use server";
 
-import { OpenAI } from "openai";
 import { prisma } from "@/lib/prisma";
-import { VideoFormData, Video, ActionResult, VideoListResult, VideoStatusResult } from "@/types/video";
 import { generateVideoName } from "@/lib/video-helpers";
+import { ActionResult, Video, VideoFormData, VideoListResult, VideoStatusResult } from "@/types/video";
+import { OpenAI } from "openai";
 
 // Initialiser OpenAI
 const openai = new OpenAI({
@@ -23,7 +23,7 @@ export async function generateVideo(data: VideoFormData): Promise<ActionResult<V
     }
 
     // Préparer les paramètres pour l'API OpenAI
-    const videoParams: any = {
+    const videoParams: Record<string, unknown> = {
       model: data.model,
       prompt: data.prompt,
       size: data.size,
@@ -38,8 +38,7 @@ export async function generateVideo(data: VideoFormData): Promise<ActionResult<V
     }
 
     // Appeler l'API OpenAI
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await openai.videos.create(videoParams as any);
+    const response = await openai.videos.create(videoParams as unknown as Parameters<typeof openai.videos.create>[0]);
 
     // Créer l'enregistrement en base de données
     const video = await prisma.video.create({
@@ -47,16 +46,16 @@ export async function generateVideo(data: VideoFormData): Promise<ActionResult<V
         openaiVideoId: response.id,
         name: generateVideoName(data.prompt),
         prompt: data.prompt,
-        model: data.model,
-        size: data.size,
-        duration: Number(data.duration),
+        model: data.model as "sora-2" | "sora-2-pro",
+        size: data.size as "1280x720" | "720x1280" | "1024x1792" | "1792x1024",
+        duration: Number(data.duration) as 4 | 8 | 12,
         status: "pending",
       },
     });
 
     return {
       success: true,
-      data: video,
+      data: video as Video,
     };
   } catch (error: unknown) {
     console.error("Erreur lors de la génération de vidéo:", error);
@@ -92,7 +91,7 @@ export async function listVideos(): Promise<ActionResult<VideoListResult>> {
 
     return {
       success: true,
-      data: { videos },
+      data: { videos: videos as Video[] },
     };
   } catch (error) {
     console.error("Erreur lors de la récupération des vidéos:", error);
@@ -104,12 +103,26 @@ export async function listVideos(): Promise<ActionResult<VideoListResult>> {
 }
 
 /**
+ * Récupère la liste des vidéos (alias pour listVideos)
+ */
+export async function getVideos() {
+  const result = await listVideos();
+  if (result.success && result.data) {
+    return result.data.videos;
+  }
+  throw new Error(result.error);
+}
+
+/**
  * Récupère le statut d'une vidéo depuis l'API OpenAI
  */
 export async function getVideoStatus(openaiVideoId: string): Promise<ActionResult<VideoStatusResult>> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await openai.videos.retrieve(openaiVideoId) as any;
+    const response = await openai.videos.retrieve(openaiVideoId) as {
+      status: string;
+      video_url?: string;
+      thumbnail_url?: string;
+    };
 
     // Mapper les statuts OpenAI vers nos statuts
     let status: "pending" | "processing" | "completed" | "failed";
@@ -135,8 +148,8 @@ export async function getVideoStatus(openaiVideoId: string): Promise<ActionResul
       where: { openaiVideoId },
       data: {
         status,
-        videoUrl: status === "completed" ? (response as any).video_url : undefined,
-        thumbnailUrl: status === "completed" ? (response as any).thumbnail_url : undefined,
+        ...(status === "completed" && response.video_url && { videoUrl: response.video_url }),
+        ...(status === "completed" && response.thumbnail_url && { thumbnailUrl: response.thumbnail_url }),
         updatedAt: new Date(),
       },
     });
@@ -145,8 +158,8 @@ export async function getVideoStatus(openaiVideoId: string): Promise<ActionResul
       success: true,
       data: {
         status,
-        videoUrl: status === "completed" ? (response as any).video_url : undefined,
-        thumbnailUrl: status === "completed" ? (response as any).thumbnail_url : undefined,
+        videoUrl: status === "completed" ? response.video_url : undefined,
+        thumbnailUrl: status === "completed" ? response.thumbnail_url : undefined,
       },
     };
   } catch (error) {
@@ -196,6 +209,39 @@ export async function deleteVideo(videoId: string): Promise<ActionResult> {
     return {
       success: false,
       error: "Erreur lors de la suppression de la vidéo",
+    };
+  }
+}
+
+/**
+ * Renomme une vidéo
+ */
+export async function renameVideo(formData: FormData): Promise<ActionResult> {
+  try {
+    const id = formData.get("id") as string;
+    const name = formData.get("name") as string;
+
+    if (!id || !name) {
+      return {
+        success: false,
+        error: "ID et nom requis",
+      };
+    }
+
+    await prisma.video.update({
+      where: { id },
+      data: { name },
+    });
+
+    return {
+      success: true,
+      message: "Vidéo renommée avec succès",
+    };
+  } catch (error) {
+    console.error("Erreur lors du renommage:", error);
+    return {
+      success: false,
+      error: "Erreur lors du renommage de la vidéo",
     };
   }
 }

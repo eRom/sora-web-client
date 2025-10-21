@@ -1,7 +1,7 @@
 {
-  "name": "[TITLE]",
-  "short_name": "[TITLE]",
-  "description": "[DESCRIPTION]",
+  "name": "Sora Vidéo Generator",
+  "short_name": "Sora Vidéo Generator",
+  "description": "Application web pour générer des vidéos avec l'API Sora 2 de OpenAI",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -70,21 +70,21 @@
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Page d'accueil de [TITLE] sur mobile"
+      "label": "Page d'accueil de Sora Vidéo Generator sur mobile"
     },
     {
       "src": "/screenshot-desktop.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Page d'accueil de [TITLE] sur desktop"
+      "label": "Page d'accueil de Sora Vidéo Generator sur desktop"
     }
   ],
   "shortcuts": [
     {
       "name": " ",
-      "short_name": "[TITLE]",
-      "description": "[DESCRIPTION]",
+      "short_name": "Sora Vidéo Generator",
+      "description": "Application web pour générer des vidéos avec l'API Sora 2 de OpenAI",
       "url": "/[PAGE_NAME]",
       "icons": [
         {

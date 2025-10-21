@@ -18,30 +18,30 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://marche-noel-mpr.vercel.app'),
-  title: "[TITLE]",
-  description: "[DESCRIPTION]",
+  title: "Sora Vidéo Generator",
+  description: "Application web pour générer des vidéos avec l'API Sora 2 de OpenAI",
   manifest: "/manifest.json",
   keywords: [],
   authors: [{ name: "Romain Ecarnot" }],
   openGraph: {
-    title: "[TITLE]",
-    description: "[DESCRIPTION]",
+    title: "Sora Vidéo Generator",
+    description: "Application web pour générer des vidéos avec l'API Sora 2 de OpenAI",
     type: "website",
     locale: "fr_FR",
-    siteName: "[TITLE]",
+    siteName: "Sora Vidéo Generator",
     images: [
       {
         url: "/og.webp",
         width: 1280,
         height: 800,
-        alt: "[DESCRIPTION]",
+        alt: "Application web pour générer des vidéos avec l'API Sora 2 de OpenAI",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "[TITLE]",
-    description: "[DESCRIPTION]",
+    title: "Sora Vidéo Generator",
+    description: "Application web pour générer des vidéos avec l'API Sora 2 de OpenAI",
     images: ["/og.webp"],
   },
   icons: {
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "[TITLE]",
+    title: "Sora Vidéo Generator",
   },
 };
 
